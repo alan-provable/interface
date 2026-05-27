@@ -105,6 +105,7 @@ function WalletModal({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const [installWallet, setInstallWallet] = useState<WalletOption | null>(null)
   const [availableWalletIds, setAvailableWalletIds] = useState<Set<string>>(
     () => new Set(),
   )
@@ -134,6 +135,12 @@ function WalletModal({
 
     return () => {
       cancelled = true
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) {
+      setInstallWallet(null)
     }
   }, [open])
 
@@ -169,6 +176,11 @@ function WalletModal({
                 type="button"
                 variant={isAvailable ? "default" : "outline"}
                 className="w-full justify-between"
+                onClick={() => {
+                  if (!isAvailable) {
+                    setInstallWallet(wallet)
+                  }
+                }}
               >
                 <span>{wallet.name}</span>
                 <span className="text-xs opacity-75">
@@ -178,6 +190,25 @@ function WalletModal({
             )
           })}
         </div>
+
+        {installWallet && (
+          <div className="rounded-md border border-border bg-muted/40 p-3 text-sm">
+            <p className="font-medium">{installWallet.name} is not installed.</p>
+            <p className="mt-1 text-muted-foreground">
+              Install it, then return here and connect without closing this modal.
+            </p>
+            <Button
+              type="button"
+              variant="secondary"
+              className="mt-3 w-full justify-center"
+              onClick={() => {
+                window.open(installWallet.installUrl, "_blank", "noopener,noreferrer")
+              }}
+            >
+              Install {installWallet.name}
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )
