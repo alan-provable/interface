@@ -13,7 +13,6 @@ import { formatUsd } from "../../lib/trade-math"
 import { useTradeFees } from "../../hooks/useTradeFees"
 import { getEstimatedEntryPrice, getPriceImpactPct } from "../../lib/pricing"
 import {
-  encodeTokenAmount,
   toCreateOrderParams,
   toDecreaseOrderParams,
 } from "../../lib/order-encoding"
@@ -23,21 +22,14 @@ import type { DecreaseOrderParams, IncreaseOrderParams } from "../../lib/stellar
 import type { useTradeState } from "../../hooks/useTradeState"
 import { applyReferralCode } from "@/features/referrals/lib/referrals"
 import {
-  buildApproveTransaction,
   buildBatchOrderTransaction,
   buildCreateOrderTransaction,
-  checkAllowance,
   getTraderReferralCode,
   parseSorobanError,
   readStoredReferralCode,
 } from "@/lib/contracts"
 import { useWalletStore } from "@/features/wallet/store/wallet-store"
 import { estimateFee } from "@/lib/soroban/simulate"
-import { prepareAndSign } from "@/lib/soroban/tx-builder"
-import { submitTx } from "@/shared/hooks/useTxSubmit"
-import { walletKit } from "@/features/wallet/lib/wallet-kit"
-import { NETWORK } from "@/app/config/network"
-import { CONTRACTS } from "@/app/config/contracts"
 import { formatAddress } from "@/shared/lib/format"
 
 type Props = {
@@ -62,10 +54,6 @@ export function ConfirmationDialog({
   const [networkFee, setNetworkFee] = useState<string | null>(null)
   const [estimateError, setEstimateError] = useState<string | null>(null)
   const [estimatingFee, setEstimatingFee] = useState(false)
-  const [allowanceState, setAllowanceState] = useState<
-    "checking" | "sufficient" | "insufficient" | "approving" | "approved"
-  >("checking")
-  const [approveError, setApproveError] = useState<string | null>(null)
   const account = useWalletStore((state: { address: string | null }) => state.address)
 
   const {
@@ -138,31 +126,6 @@ export function ConfirmationDialog({
   ])
 
   useEffect(() => {
-    if (!open || !account || tradeFlags.isSwap || !collateralAddress) return
-
-    const check = async () => {
-      setAllowanceState("checking")
-      setApproveError(null)
-      try {
-        const needed = encodeTokenAmount(
-          Number(fromAmount || "0"),
-          collateralAddress
-        )
-        const allowance = await checkAllowance(
-          collateralAddress,
-          account,
-          CONTRACTS.exchangeRouter
-        )
-        setAllowanceState(allowance >= needed ? "sufficient" : "insufficient")
-      } catch {
-        setAllowanceState("sufficient")
-      }
-    }
-
-    void check()
-  }, [open, account, tradeFlags.isSwap, collateralAddress, sizeUsd])
-
-  useEffect(() => {
     if (!open || !account || tradeFlags.isSwap) return
 
     const run = async () => {
@@ -227,41 +190,6 @@ export function ConfirmationDialog({
     sidecarCreateOrders,
   ])
 
-  async function handleApprove() {
-    if (!account || !collateralAddress) return
-    setAllowanceState("approving")
-    setApproveError(null)
-    try {
-      const amount = encodeTokenAmount(
-        Number(fromAmount || "0"),
-        collateralAddress
-      )
-      await submitTx(
-        async () => {
-          const tx = await buildApproveTransaction(
-            collateralAddress,
-            account,
-            CONTRACTS.exchangeRouter,
-            amount
-          )
-          return prepareAndSign(tx, walletKit, NETWORK.networkPassphrase)
-        },
-        {
-          loadingMessage: "Approving collateral token...",
-          successMessage: "Collateral approved",
-          successDescription: (hash) => `Tx: ${hash.slice(0, 8)}...`,
-          onError: parseSorobanError,
-        }
-      )
-      setAllowanceState("approved")
-    } catch (error) {
-      setAllowanceState("insufficient")
-      setApproveError(
-        error instanceof Error ? error.message : "Approval failed"
-      )
-    }
-  }
-
   async function handleConfirm() {
     setIsSubmitting(true)
     try {
@@ -289,10 +217,6 @@ export function ConfirmationDialog({
               console.warn("Referral code could not be auto-applied:", error)
             }
           }
-        }
-
-        if (allowanceState === "insufficient") {
-          await handleApprove()
         }
 
         const parentOrder: IncreaseOrderParams = {
@@ -376,33 +300,6 @@ export function ConfirmationDialog({
                   Fee estimation warning: {estimateError}
                 </p>
               )}
-              {allowanceState !== "sufficient" &&
-                allowanceState !== "checking" && (
-                  <div className="min-w-0 rounded border border-amber-500/30 p-2">
-                    <p className="mb-1 text-xs font-medium text-amber-500">
-                      Step 1/2: Approve collateral
-                    </p>
-                    <p className="max-w-full text-xs text-muted-foreground [overflow-wrap:anywhere]">
-                      {allowanceState === "approving"
-                        ? "Approving..."
-                        : allowanceState === "approved"
-                          ? "Approved! Proceeding with order..."
-                          : `${formatAddress(collateralAddress)} needs to be approved for trading.`}
-                    </p>
-                    {approveError && (
-                      <p className="mt-1 max-h-24 max-w-full overflow-y-auto overflow-x-hidden rounded-md border border-red-500/20 bg-red-500/5 p-2 text-xs text-red-500 [overflow-wrap:anywhere]">
-                        {approveError}
-                      </p>
-                    )}
-                  </div>
-                )}
-              {allowanceState === "approving" && (
-                <div className="rounded border border-border p-2">
-                  <p className="text-xs text-muted-foreground">
-                    Step 2/2: Submit Order
-                  </p>
-                </div>
-              )}
               {sidecarOrders.length > 0 && (
                 <div className="min-w-0 rounded border border-border p-2">
                   <p className="mb-1 text-xs font-medium">
@@ -439,9 +336,7 @@ export function ConfirmationDialog({
             disabled={
               isSubmitting ||
               sizeUsd <= 0 ||
-              !!maxPositionError ||
-              allowanceState === "checking" ||
-              allowanceState === "approving"
+              !!maxPositionError
             }
             className={
               tradeFlags.isLong
@@ -453,9 +348,7 @@ export function ConfirmationDialog({
           >
             {isSubmitting
               ? "Submitting..."
-              : allowanceState === "insufficient"
-                ? `Approve & ${typeLabel}`
-                : `Confirm ${typeLabel}`}
+              : `Confirm ${typeLabel}`}
           </Button>
         </DialogFooter>
       </DialogContent>

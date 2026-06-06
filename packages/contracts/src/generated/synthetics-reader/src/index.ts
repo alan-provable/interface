@@ -117,7 +117,13 @@ function decodeBool(v: xdr.ScVal | undefined): boolean {
 }
 
 function decodeEnumVariant(v: xdr.ScVal | undefined): string {
-  // Soroban #[contracttype] unit-enum → single-entry Map {Symbol(name): Void}
+  // Soroban #[contracttype] unit-enum → Vec [Symbol(name)].
+  const vec = decodeVec(v)
+  if (vec.length > 0) {
+    try { return String(vec[0].sym()) } catch { return "" }
+  }
+
+  // Backward-compatible fallback for older local encoders.
   const m = decodeMap(v)
   if (m.length === 0) return ""
   try { return String(m[0].key().sym()) } catch { return "" }
