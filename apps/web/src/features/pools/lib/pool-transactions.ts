@@ -179,16 +179,6 @@ export async function submitPoolWithdrawal(args: {
   const expected = { long: null as bigint | null, short: null as bigint | null }
 
   try {
-    await approveIfNeeded({
-      stepId: "approve-gm",
-      token: args.market.marketToken,
-      owner: args.account,
-      spender: CONTRACTS.withdrawalHandler,
-      amount: args.marketTokenAmount,
-      symbol: "GM",
-      onProgress: args.onProgress,
-    })
-
     args.onProgress?.({
       id: "create-withdrawal",
       status: "active",
