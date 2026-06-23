@@ -1,4 +1,3 @@
-import type { ComponentProps } from "react"
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@workspace/ui/components/button"
 import { toast } from "sonner"
@@ -9,6 +8,7 @@ import { formatAddress } from "@/shared/lib/format"
 import { useBalance } from "../hooks/useBalance"
 import { useNetwork } from "../hooks/useNetwork"
 import { useWallet } from "../hooks/useWallet"
+import type { ComponentProps } from "react"
 
 type AccountBadgeProps = {
   address: string

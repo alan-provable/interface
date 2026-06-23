@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import type { ComponentProps } from "react"
 
 import { QRCodeSVG } from "qrcode.react"
 
@@ -19,6 +18,7 @@ import { NETWORK } from "@/app/config/network"
 import { createSep7ConnectUri, createSep7TransactionUri } from "../lib/sep7"
 import { useBalance } from "../hooks/useBalance"
 import { useWalletStore } from "../store/wallet-store"
+import type { ComponentProps } from "react"
 
 type ConnectButtonProps = Omit<
   ComponentProps<typeof Button>,

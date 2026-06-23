@@ -6,10 +6,10 @@ import { formatUsd } from "@/shared/lib/format"
 import { usePositions } from "../../hooks/usePositions"
 import { hasFrozenOrders, useOrders } from "../../hooks/useOrders"
 import { claimFundingFees } from "../../lib/stellar"
-import type { Position } from "../../hooks/usePositions"
 import { OrderExecutionFrozenBanner } from "./OrderExecutionFrozenBanner"
 import { PositionsList } from "./PositionsList"
 import { OrdersList } from "./OrdersList"
+import type { Position } from "../../hooks/usePositions"
 
 // TODO: Add Trades and Claims tabs once tradeHistory + claimFundingFees are wired up
 

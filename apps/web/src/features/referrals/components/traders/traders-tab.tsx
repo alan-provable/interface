@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Button } from "@workspace/ui/components/button"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import type { TimePeriod } from "../../hooks/use-referrals-data"
 import { useWalletStore } from "@/features/wallet/store/wallet-store"
 import { formatUsd } from "@/shared/lib/format"
 import { useDistributions, useTraderStats } from "../../hooks/use-referrals-data"
@@ -12,7 +13,6 @@ import {
 } from "../../lib/referrals"
 import { TimePeriodFilter } from "../shared/time-period-filter"
 import { StatChartCard } from "../shared/stat-chart-card"
-import type { TimePeriod } from "../../hooks/use-referrals-data"
 
 
 function fmtDate(iso: string) {
