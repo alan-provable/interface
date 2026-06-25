@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { cleanup, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useKeyboardShortcut } from "./useKeyboardShortcut"
 
@@ -25,7 +25,8 @@ describe("useKeyboardShortcut", () => {
   })
 
   afterEach(() => {
-    vi.clearAllMocks()
+    cleanup()
+    vi.restoreAllMocks()
   })
 
   it("should call callback on simple key press", async () => {

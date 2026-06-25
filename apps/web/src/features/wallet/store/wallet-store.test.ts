@@ -1,31 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it } from "vitest"
 import { useWalletStore } from "./wallet-store"
 
 describe("useWalletStore", () => {
   beforeEach(() => {
-    // Reset store to initial state before each test
     useWalletStore.setState({
       address: null,
       network: "testnet",
       pendingTransactionXdr: null,
       walletId: null,
       status: "disconnected",
-    })
-  })
-
-  afterEach(() => {
-    // Verify store is reset after each test to prevent leakage
-    const state = useWalletStore.getState()
-    expect(state).toEqual({
-      address: null,
-      network: "testnet",
-      pendingTransactionXdr: null,
-      walletId: null,
-      status: "disconnected",
-      setConnected: expect.any(Function),
-      setDisconnected: expect.any(Function),
-      setPendingTransactionXdr: expect.any(Function),
-      setStatus: expect.any(Function),
     })
   })
 

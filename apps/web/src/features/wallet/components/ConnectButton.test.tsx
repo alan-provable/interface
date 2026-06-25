@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { cleanup, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useWalletStore } from "../store/wallet-store"
 import { ConnectButton } from "./ConnectButton"
@@ -7,7 +7,9 @@ import { useKeyboardShortcut } from "@/shared/hooks/useKeyboardShortcut"
 import { fakeWalletAddress } from "@/test/fakes/wallet"
 
 // Mock the keyboard shortcut hook
-vi.mock("@/shared/hooks/useKeyboardShortcut")
+vi.mock("@/shared/hooks/useKeyboardShortcut", () => ({
+  useKeyboardShortcut: vi.fn(),
+}))
 
 // Mock the wallet provider hook
 vi.mock("@/app/providers", () => ({
@@ -40,8 +42,8 @@ describe("ConnectButton - Disconnected State", () => {
   })
 
   afterEach(() => {
-    vi.clearAllMocks()
-    // Reset store after each test to prevent leakage
+    cleanup()
+    vi.restoreAllMocks()
     useWalletStore.setState({
       address: null,
       walletId: null,
