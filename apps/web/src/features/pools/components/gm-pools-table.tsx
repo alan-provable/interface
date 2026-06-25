@@ -9,7 +9,7 @@ export interface Pool {
 
 export interface GmPoolsTableProps {
   isLoading?: boolean;
-  pools?: Pool[];
+  pools?: Array<Pool>;
 }
 
 export function GmPoolsTable({ isLoading, pools = [] }: GmPoolsTableProps) {
