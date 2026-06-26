@@ -36,15 +36,40 @@ bun run --cwd apps/s03-indexer start
 builds the mappings, pulls the required Docker images, and starts the local
 stack.
 
+## Test Runner Conventions
+
+Use the indexer package test script before opening a PR:
+
+```bash
+bun run --cwd apps/s03-indexer test
+```
+
+That command runs `subql codegen`, `subql build`, and then `bun test tests`.
+The codegen step is required in a clean checkout because the mapping sources
+import generated `src/types` models, and those generated files stay ignored.
+
+Use `bun test tests` only for a faster local loop after generated types already
+exist. Keep indexer pure-logic tests on Bun's built-in `bun:test` runner. Use
+Vitest for Vite, DOM, or React/browser harnesses such as `apps/web`; do not move
+indexer mapping tests to Vitest unless they start needing that style of harness.
+
+Current pure-logic test inventory:
+
+- `tests/mappingHandlers.test.ts` stubs SubQuery `store` and `logger`, then
+  covers ScVal decoding, map/vector payload decoding, raw Soroban event
+  decoding, deterministic entity IDs, lifecycle dispatch for market, deposit,
+  withdrawal, order, position, liquidation, ADL, fee, referral, token/faucet
+  events, and unknown-event logging.
+
 ## Local Services
 
 The Docker stack in `docker-compose.yml` starts three services:
 
-| Service | Image/build | Port | Purpose |
-| --- | --- | --- | --- |
-| `postgres` | local `docker/pg-Dockerfile` | `localhost:5432` | SubQuery metadata and indexed entities |
-| `subquery-node` | `subquerynetwork/subql-node-stellar:latest` | internal `3000` | Stellar/SubQuery indexing node |
-| `graphql-engine` | `subquerynetwork/subql-query:latest` | `localhost:3000` | GraphQL API and playground |
+| Service          | Image/build                                 | Port             | Purpose                                |
+| ---------------- | ------------------------------------------- | ---------------- | -------------------------------------- |
+| `postgres`       | local `docker/pg-Dockerfile`                | `localhost:5432` | SubQuery metadata and indexed entities |
+| `subquery-node`  | `subquerynetwork/subql-node-stellar:latest` | internal `3000`  | Stellar/SubQuery indexing node         |
+| `graphql-engine` | `subquerynetwork/subql-query:latest`        | `localhost:3000` | GraphQL API and playground             |
 
 Requirements:
 
@@ -172,11 +197,11 @@ The runner executes layered, timed steps and records each one in a JSON report:
 
 ### Run modes
 
-| Mode | Behavior |
-| --- | --- |
+| Mode                    | Behavior                                                                    |
+| ----------------------- | --------------------------------------------------------------------------- |
 | `--mode auto` (default) | Reuse a complete local deployment if present, otherwise deploy + bootstrap. |
-| `--mode fresh` | Always deploy test tokens, contracts, and bootstrap a market. |
-| `--mode existing` | Require a complete `.deployed/local.env`; fail fast if missing. |
+| `--mode fresh`          | Always deploy test tokens, contracts, and bootstrap a market.               |
+| `--mode existing`       | Require a complete `.deployed/local.env`; fail fast if missing.             |
 
 ### Common options
 
