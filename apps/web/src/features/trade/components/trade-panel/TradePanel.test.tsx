@@ -1,8 +1,8 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 import { cleanup, render, screen } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { useWalletStore } from "@/features/wallet/store/wallet-store"
 import type { TradePanel as TradePanelComponent } from "./TradePanel"
+import { useWalletStore } from "@/features/wallet/store/wallet-store"
 
 function createWrapper() {
   const queryClient = new QueryClient({

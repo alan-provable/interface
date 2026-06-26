@@ -1,19 +1,19 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 import { renderHook, waitFor } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { useWalletStore } from "@/features/wallet/store/wallet-store"
-import type { FundingInfo, MarketProps, PoolValueInfo } from "@/lib/contracts"
-import type { PoolMarketConfig } from "../data/markets"
-import type { usePoolRowData as UsePoolRowDataType } from "./use-pool-row-data"
 import {
+  getComposition,
   getEstimatedApy,
   getFundingRatePerHourPct,
   getOpenInterestUsd,
   getPoolTvlUsd,
-  getComposition,
   rawToDisplay,
   usdRawToDisplay,
 } from "../lib/pool-math"
+import type { FundingInfo, MarketProps, PoolValueInfo } from "@/lib/contracts"
+import type { PoolMarketConfig } from "../data/markets"
+import type { usePoolRowData as UsePoolRowDataType } from "./use-pool-row-data"
+import { useWalletStore } from "@/features/wallet/store/wallet-store"
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
